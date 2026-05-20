@@ -5,6 +5,11 @@ import fs from 'fs/promises';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import dns from 'dns';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Fix for querySrv ECONNREFUSED issues in some Node.js DNS environments
 dns.setDefaultResultOrder('ipv4first');
@@ -428,17 +433,11 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 // Serve static assets from the React frontend build folder (dist)
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Fallback all other GET requests to index.html for React SPA routing
-app.get('*', (req, res) => {
+app.get('{/*any}', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
