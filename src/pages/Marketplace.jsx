@@ -254,8 +254,8 @@ const Marketplace = () => {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-white w-full max-w-4xl rounded-[40px] overflow-hidden shadow-2xl flex flex-col md:flex-row"
             >
-              <div className="md:w-1/2 h-80 md:h-auto">
-                <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-cover" />
+              <div className="md:w-1/2 h-80 md:h-auto bg-slate-50 flex items-center justify-center">
+                <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-contain bg-slate-50" />
               </div>
               
               <div className="md:w-1/2 p-10 flex flex-col justify-between">

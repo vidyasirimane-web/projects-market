@@ -296,7 +296,7 @@ app.post('/api/users/register', async (req, res) => {
       password: password || '',
       village: village || 'Tumkur',
       type: type || 'farmer',
-      status: type === 'farmer' ? 'pending' : 'approved',
+      status: 'pending',
       registeredAt: new Date()
     });
 
@@ -394,6 +394,18 @@ app.put('/api/products/:id/verify', async (req, res) => {
     res.json(product);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update product verification status', details: error.message });
+  }
+}
+// Update product status (Approve/Reject)
+app.patch('/api/products/:id', async (req, res) => {
+  const productId = parseInt(req.params.id);
+  const { status } = req.body;
+  try {
+    const product = await Product.findOneAndUpdate({ id: productId }, { status }, { new: true });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update product status', details: error.message });
   }
 });
 
