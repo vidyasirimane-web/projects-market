@@ -67,14 +67,6 @@ const FarmerDashboard = () => {
   const [savingProduct, setSavingProduct] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [form, setForm] = useState({ name: '', price: '', quantity: '', quality: '' });
-
-  // Load current user
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
-    if (!user || user.type !== 'farmer') { navigate('/login?type=farmer'); return; }
-    setUserData(user);
-  }, [navigate]);
-
   const loadData = useCallback(async (user) => {
     if (!user) return;
     setRefreshing(true);
@@ -113,9 +105,15 @@ const FarmerDashboard = () => {
     }
   }, []);
 
+  // Load current user and initial data
   useEffect(() => {
-    if (userData) loadData(userData);
-  }, [userData, loadData]);
+    const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    if (!user || user.type !== 'farmer') { navigate('/login?type=farmer'); return; }
+    setUserData(user);
+    
+    // Only call loadData once on initial load (since loadData is stable via useCallback)
+    loadData(user);
+  }, [navigate, loadData]);
 
   const handleLogout = () => {
     localStorage.removeItem('currentUser');

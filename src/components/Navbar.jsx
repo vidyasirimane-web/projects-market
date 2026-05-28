@@ -161,7 +161,7 @@ const Navbar = () => {
                         </div>
                       </Link>
                       <Link to="/login?type=company" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 18px', color: '#1e293b', textDecoration: 'none', fontWeight: '600', fontSize: '0.875rem', transition: 'all 0.15s' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(22,163,74,0.06)'; e.currentTarget.style.color = '#16a34a'; }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(59,130,246,0.06)'; e.currentTarget.style.color = '#3b82f6'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#1e293b'; }}>
                         <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <Building2 size={16} color="#3b82f6" />

@@ -395,7 +395,7 @@ app.put('/api/products/:id/verify', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to update product verification status', details: error.message });
   }
-}
+});
 // Update product status (Approve/Reject)
 app.patch('/api/products/:id', async (req, res) => {
   const productId = parseInt(req.params.id);

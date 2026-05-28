@@ -14,19 +14,12 @@ const AdminLogin = () => {
     setErrorMsg('');
     const cleanedUser = username.trim().toLowerCase();
     
-    if ((cleanedUser === 'admin' || cleanedUser === 'admin@gmail.com') && password === 'admin123') {
+    if (cleanedUser === 'admin' && password === 'admin123') {
       localStorage.setItem('adminUser', JSON.stringify({ type: 'admin' }));
       navigate('/admin');
     } else {
       setErrorMsg('Invalid admin credentials.');
     }
-  };
-
-  const handleQuickLogin = () => {
-    setUsername('admin@gmail.com');
-    setPassword('admin123');
-    localStorage.setItem('adminUser', JSON.stringify({ type: 'admin' }));
-    navigate('/admin');
   };
 
   return (
@@ -77,17 +70,6 @@ const AdminLogin = () => {
             Secure Login
           </button>
         </form>
-
-        <div className="demo-accounts-box">
-          <h4>Quick Demo Access</h4>
-          <button 
-            type="button" 
-            onClick={handleQuickLogin}
-            className="demo-btn"
-          >
-            <ShieldCheck size={16} /> Login as Demo Admin
-          </button>
-        </div>
       </motion.div>
     </div>
   );
