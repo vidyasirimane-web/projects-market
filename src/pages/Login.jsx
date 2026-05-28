@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Lock, User, Phone, MapPin, ShieldCheck, ArrowRight, Building2, Eye, EyeOff, Loader2, Leaf, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API = import.meta.env.VITE_API_URL || '/api';
 
 const Login = () => {
   const [searchParams] = useSearchParams();

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, ShieldCheck, MessageSquare, UserPlus, MapPin, Phone, LogOut, Package, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API = import.meta.env.VITE_API_URL || '/api';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
