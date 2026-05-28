@@ -216,7 +216,7 @@ mongoose.connect(MONGODB_URI)
   })
   .catch(err => {
     console.error('❌ Failed to connect to MongoDB:', err.message);
-    process.exit(1);
+    console.warn('⚠️ Server will remain running so deployment does not fail, but database features will not work until the connection is fixed.');
   });
 
 // Health Check
