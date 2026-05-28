@@ -7,22 +7,9 @@ import dotenv from 'dotenv';
 import dns from 'dns';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { existsSync } from 'fs';
-import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Self-healing build trigger: if dist/index.html is missing on startup, run production build dynamically
-if (!existsSync(path.join(__dirname, 'dist', 'index.html'))) {
-  console.log('⚠️ dist/index.html not found! Running production build dynamically...');
-  try {
-    execSync('npm run build', { stdio: 'inherit' });
-    console.log('✅ Production build completed successfully!');
-  } catch (err) {
-    console.error('❌ Dynamic production build failed:', err.message);
-  }
-}
 
 // Fix for querySrv ECONNREFUSED issues in some Node.js DNS environments
 dns.setDefaultResultOrder('ipv4first');
