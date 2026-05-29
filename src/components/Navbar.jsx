@@ -68,7 +68,6 @@ const Navbar = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="md-nav">
             {[
               { to: '/', label: 'Home' },
-              { to: '/marketplace', label: 'Marketplace' },
               { to: '/about', label: 'About' },
               { to: '/contact', label: 'Contact' },
             ].map(({ to, label }) => (
@@ -211,7 +210,6 @@ const Navbar = () => {
           }}>
             {[
               { to: '/', label: 'Home' },
-              { to: '/marketplace', label: 'Marketplace' },
               { to: '/about', label: 'About' },
               { to: '/contact', label: 'Contact' },
               { to: '/login?type=farmer', label: '🌾 Farmer Login' },

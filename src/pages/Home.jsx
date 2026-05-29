@@ -126,7 +126,7 @@ const Home = () => {
             transition={{ delay: 0.2 }}
             className="text-xl mb-10 opacity-90"
           >
-            Fresh Produce. Better Future. Transparent Marketplace.
+            Fresh Produce. Better Future. Transparent Direct Sourcing.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -142,13 +142,12 @@ const Home = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') navigate(`/marketplace?search=${encodeURIComponent(searchQuery)}`);
+                if (e.key === 'Enter') navigate(`/login?type=company`);
               }}
             />
-            {/* FIX: Added the missing closing } for the onClick handler */}
             <button
               className="btn btn-primary"
-              onClick={() => navigate(`/marketplace?search=${encodeURIComponent(searchQuery)}`)}
+              onClick={() => navigate(`/login?type=company`)}
             >
               Search
             </button>
@@ -164,7 +163,7 @@ const Home = () => {
             {categories.map((cat) => (
               <button
                 key={cat.name}
-                onClick={() => navigate(`/marketplace?category=${encodeURIComponent(cat.name)}`)}
+                onClick={() => navigate(`/login?type=company`)}
                 className="glass-card flex flex-col items-center gap-3 min-w-[120px] hover:border-primary cursor-pointer transition-transform hover:scale-105"
               >
                 <span className="text-4xl">{cat.icon}</span>
@@ -197,7 +196,7 @@ const Home = () => {
                   </div>
                   <button
                     className="btn btn-primary w-full justify-center"
-                    onClick={() => navigate('/marketplace')}
+                    onClick={() => navigate('/login?type=company')}
                   >
                     View Details
                   </button>

@@ -26,7 +26,7 @@ const About = () => {
             transition={{ delay: 0.2 }}
             className="text-lg text-text-light leading-relaxed"
           >
-            Krishi Connect is an innovative agricultural marketplace platform designed to create a direct connection between farmers and companies. Our mission is to simplify agricultural trading by providing a secure, transparent, and user-friendly digital platform where farmers can sell their products directly to companies without the involvement of middlemen.
+            Krishi Connect is an innovative agricultural trade platform designed to create a direct connection between farmers and companies. Our mission is to simplify agricultural trading by providing a secure, transparent, and user-friendly digital platform where farmers can sell their products directly to companies without the involvement of middlemen.
           </motion.p>
         </header>
 

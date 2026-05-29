@@ -295,7 +295,7 @@ const totalSpend = orders.reduce((s, o) => s + (o.totalPrice || 0), 0);
                 <div style={{ padding: '80px', textAlign: 'center', background: 'white', borderRadius: '20px', border: '2px dashed #e2e8f0', color: '#94a3b8' }}>
                   <ShoppingBag size={64} style={{ margin: '0 auto 16px', strokeWidth: 1 }} />
                   <p style={{ fontWeight: '700', fontSize: '1.2rem', marginBottom: '8px' }}>No active orders</p>
-                  <p style={{ fontSize: '0.875rem' }}>Browse the marketplace to place your first bulk order</p>
+                  <p style={{ fontSize: '0.875rem' }}>Browse crops to place your first bulk order</p>
                   <button onClick={() => setActiveTab('browse')} style={{ marginTop: '20px', padding: '10px 24px', borderRadius: '12px', background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '700', fontFamily: 'inherit' }}>Browse Crops</button>
                 </div>
               ) : orders.map(order => (

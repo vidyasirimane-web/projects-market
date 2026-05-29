@@ -523,7 +523,7 @@ const FarmerDashboard = () => {
                         <div style={{ padding: '60px', textAlign: 'center', color: '#94a3b8' }}>
                           <MessageSquare size={56} style={{ margin: '0 auto 16px', strokeWidth: 1 }} />
                           <p style={{ fontWeight: '700', fontSize: '1.1rem', marginBottom: '8px' }}>No buyer messages yet</p>
-                          <p style={{ fontSize: '0.875rem' }}>Buyer inquiries from the marketplace appear here</p>
+                          <p style={{ fontSize: '0.875rem' }}>Buyer inquiries will appear here</p>
                         </div>
                       ) : chats.map(chat => (
                         <motion.div key={chat.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
