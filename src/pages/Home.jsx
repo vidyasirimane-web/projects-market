@@ -174,38 +174,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto">
-          <div className="flex justify-between items-center mb-12">
-            <h2 className="text-3xl font-bold">Featured Products</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {products.map((p) => (
-              <motion.div
-                key={p.name}
-                whileHover={{ y: -10 }}
-                className="glass-card overflow-hidden p-0"
-              >
-                <img src={p.image} alt={p.name} className="w-full h-48 object-cover" />
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2">{p.name}</h3>
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-primary font-bold text-xl">{p.unit} - ₹{p.price}</span>
-                    <span className="text-text-light text-sm italic">Farmer: {p.farmer}</span>
-                  </div>
-                  <button
-                    className="btn btn-primary w-full justify-center"
-                    onClick={() => navigate('/login?type=company')}
-                  >
-                    View Details
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* How it Works */}
       <section className="py-20 bg-secondary text-white">
