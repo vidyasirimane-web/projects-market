@@ -193,7 +193,7 @@ const FarmerDashboard = () => {
         body: JSON.stringify({ status: newStatus }),
       });
       setMyProducts(prev => prev.map(p => p.id === product.id ? { ...p, status: newStatus } : p));
-  } catch { alert('Failed to update status'); }
+  } catch (err) { alert('Failed to update status: ' + err.message); }
   };
 
   const handleSendReply = (chatId) => {

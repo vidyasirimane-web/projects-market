@@ -26,7 +26,7 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/krishi
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-const API_KEY = "AIzaSyA-Tq_tCh_Cp_r-ul5t4_AK10oM70OfWZ8";
+const API_KEY = process.env.GEMINI_API_KEY || '';
 
 // ==========================================
 // MONGOOSE SCHEMAS & MODELS
