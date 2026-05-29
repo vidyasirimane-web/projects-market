@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import fetch from 'node-fetch';
+
 import fs from 'fs/promises';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';

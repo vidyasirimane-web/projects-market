@@ -45,7 +45,14 @@ const Login = () => {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, type: userType }),
       });
-      const user = await res.json();
+      
+      let user;
+      try {
+        user = await res.json();
+      } catch (jsonErr) {
+        throw new Error('Server connection error. Please ensure the backend server is running on port 5000.', { cause: jsonErr });
+      }
+
       if (!res.ok) throw new Error(user.error || 'Login failed');
       localStorage.setItem('currentUser', JSON.stringify(user));
       navigate(userType === 'farmer' ? '/farmer-dashboard' : '/company-dashboard');
@@ -66,7 +73,14 @@ const Login = () => {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone: formData.phone, type: userType }),
         });
-        const user = await res.json();
+        
+        let user;
+        try {
+          user = await res.json();
+        } catch (jsonErr) {
+          throw new Error('Server connection error. Please ensure the backend server is running on port 5000.', { cause: jsonErr });
+        }
+
         if (!res.ok) throw new Error(user.error || 'Login failed');
         if (user.password && formData.password && formData.password !== user.password) {
           throw new Error('Incorrect password. Please try again.');
@@ -78,7 +92,14 @@ const Login = () => {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...formData, type: userType }),
         });
-        const user = await res.json();
+        
+        let user;
+        try {
+          user = await res.json();
+        } catch (jsonErr) {
+          throw new Error('Server connection error. Please ensure the backend server is running on port 5000.', { cause: jsonErr });
+        }
+
         if (!res.ok) throw new Error(user.error || 'Registration failed');
         localStorage.setItem('currentUser', JSON.stringify(user));
         setSuccessMsg('Registration successful! Redirecting...');
