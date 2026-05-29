@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, CheckCircle2, TrendingUp, Users, ShieldCheck, ShoppingBag, ChevronLeft } from 'lucide-react';
+import { ChevronRight, CheckCircle2, TrendingUp, Users, ShieldCheck, ShoppingBag, ChevronLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const categories = [
@@ -29,7 +29,6 @@ const heroImages = [
 
 const Home = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
 
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -128,30 +127,6 @@ const Home = () => {
           >
             Fresh Produce. Better Future. Transparent Direct Sourcing.
           </motion.p>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-            className="glass max-w-2xl mx-auto flex items-center p-2 rounded-2xl"
-          >
-            <Search className="ml-4 text-text-light" />
-            <input
-              type="text"
-              placeholder="Search Products (Wheat, Tomato, etc.)..."
-              className="w-full bg-transparent border-none outline-none p-4 text-text placeholder:text-text-light"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') navigate(`/login?type=company`);
-              }}
-            />
-            <button
-              className="btn btn-primary"
-              onClick={() => navigate(`/login?type=company`)}
-            >
-              Search
-            </button>
-          </motion.div>
         </div>
       </section>
 
