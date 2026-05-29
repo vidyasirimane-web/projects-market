@@ -6,7 +6,7 @@ services:
     startCommand: npm start
     envVars:
       - key: MONGODB_URI
-        value: mongodb+srv://vidyasirimane_db_user:123456@cluster0.hdzvoym.mongodb.net/krishi_connect?retryWrites=true&w=majority
+        sync: false   # Set this secret in the Render dashboard → Environment
       - key: PORT
         value: 10000
       - key: VITE_API_URL
