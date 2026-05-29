@@ -62,11 +62,7 @@ const About = () => {
         {/* Stats Section */}
         <section className="bg-secondary text-white py-16 rounded-3xl overflow-hidden relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-          <div className="container grid grid-cols-2 md:grid-cols-4 gap-8 text-center relative z-10">
-            <div>
-              <h3 className="text-4xl font-bold text-primary mb-2">5000+</h3>
-              <p className="opacity-70">Farmers Joined</p>
-            </div>
+          <div className="container grid grid-cols-1 md:grid-cols-3 gap-8 text-center relative z-10">
             <div>
               <h3 className="text-4xl font-bold text-primary mb-2">200+</h3>
               <p className="opacity-70">Bulk Orders</p>
