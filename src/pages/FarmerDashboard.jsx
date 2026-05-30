@@ -39,6 +39,7 @@ const FarmerDashboard = () => {
   const [replyText, setReplyText] = useState({});
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [preview, setPreview] = useState(null);
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectionResults, setDetectionResults] = useState(null);
@@ -179,8 +180,8 @@ const FarmerDashboard = () => {
         }),
       });
       if (!res.ok) throw new Error('Failed to save product');
-      setShowAddForm(false); resetForm();
       await loadData(userData);
+      setIsSuccess(true);
     } catch (err) { alert(err.message); }
     finally { setSavingProduct(false); }
   };
@@ -599,72 +600,101 @@ const FarmerDashboard = () => {
                   <XCircle size={22} />
                 </button>
               </div>
-              <div style={{ padding: '28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px' }}>
-                {/* Left: Image */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  <p style={{ fontSize: '0.72rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Crop Photo</p>
-                  {preview ? (
-                    <div style={{ position: 'relative', borderRadius: '18px', overflow: 'hidden', border: '3px solid #bbf7d0', aspectRatio: '1', background: '#f8fafc' }}>
-                      <img src={preview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      {isDetecting && (
-                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', color: 'white' }}>
-                          <Loader2 size={40} className="animate-spin" />
-                          <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>AI Detecting...</span>
-                        </div>
-                      )}
-                      <button onClick={() => { setPreview(null); setDetectionResults(null); }} style={{ position: 'absolute', top: '10px', right: '10px', padding: '6px 12px', borderRadius: '8px', background: '#ef4444', color: 'white', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: '800', fontFamily: 'inherit' }}>
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '32px', border: '2px dashed #e2e8f0', borderRadius: '18px', background: '#f8fafc', cursor: 'pointer', transition: 'all 0.2s', aspectRatio: '1' }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#16a34a'; e.currentTarget.style.background = '#f0fdf4'; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#f8fafc'; }}>
-                      <Camera size={40} color="#94a3b8" strokeWidth={1.5} />
-                      <div style={{ textAlign: 'center' }}>
-                        <p style={{ fontWeight: '700', color: '#334155', marginBottom: '4px' }}>Upload Crop Photo</p>
-                        <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>AI will auto-fill details</p>
-                      </div>
-                      <input type="file" accept="image/*" onChange={handleImageSelect} style={{ display: 'none' }} />
-                    </label>
-                  )}
-                  {detectionResults && (
-                    <div style={{ padding: '12px 16px', background: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div>
-                        <p style={{ fontSize: '0.68rem', fontWeight: '800', color: '#16a34a', textTransform: 'uppercase', marginBottom: '2px' }}>AI Result</p>
-                        <p style={{ fontSize: '0.8rem', fontWeight: '700', color: '#334155' }}>{detectionResults.name} · {detectionResults.health}</p>
-                      </div>
-                      <span style={{ padding: '3px 10px', background: '#16a34a', color: 'white', borderRadius: '999px', fontSize: '0.68rem', fontWeight: '800' }}>AI ✓</span>
-                    </div>
-                  )}
-                </div>
 
-                {/* Right: Form */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  <p style={{ fontSize: '0.72rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Crop Details</p>
-                  {[{ label: 'Crop Name *', field: 'name', placeholder: 'e.g. Organic Tomato', type: 'text' },
-                    { label: 'Price per kg (₹) *', field: 'price', placeholder: 'e.g. 55', type: 'number' },
-                    { label: 'Quantity (kg) *', field: 'quantity', placeholder: 'e.g. 500', type: 'number' },
-                    { label: 'Quality Grade', field: 'quality', placeholder: 'e.g. A+, A, B', type: 'text' },
-                  ].map(({ label, field, placeholder, type }) => (
-                    <div key={field}>
-                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#64748b', marginBottom: '6px' }}>{label}</label>
-                      <input type={type} placeholder={placeholder} value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })}
-                        style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e2e8f0', outline: 'none', fontSize: '0.9rem', fontWeight: '600', width: '100%', fontFamily: 'inherit' }} />
-                    </div>
-                  ))}
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: 'auto', paddingTop: '8px' }}>
-                    <button onClick={() => { setShowAddForm(false); resetForm(); }} style={{ padding: '11px', borderRadius: '10px', border: '1.5px solid #e2e8f0', background: 'white', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem', color: '#64748b', fontFamily: 'inherit' }}>Cancel</button>
-                    <button onClick={() => handleAddProduct('Hold')} disabled={savingProduct} style={{ padding: '11px', borderRadius: '10px', border: '1.5px solid #f59e0b', background: '#fffbeb', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem', color: '#92400e', fontFamily: 'inherit' }}>
-                      {savingProduct ? '...' : 'Hold'}
+              {isSuccess ? (
+                <div style={{ padding: '48px 28px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+                  <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16a34a', boxShadow: '0 8px 24px rgba(22,163,74,0.2)' }}>
+                    <CheckCircle size={36} color="#16a34a" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.4rem', fontWeight: '900', color: '#0f172a', marginBottom: '8px' }}>Crop Uploaded Successfully!</h3>
+                    <p style={{ fontSize: '0.875rem', color: '#64748b', maxWidth: '360px', margin: '0 auto', lineHeight: '1.5' }}>
+                      Your crop listing is now submitted. If published, it will be visible to buying companies.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', width: '100%', maxWidth: '380px', marginTop: '10px' }}>
+                    <button onClick={() => { setIsSuccess(false); resetForm(); }}
+                      style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1.5px solid #16a34a', background: 'white', color: '#16a34a', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', fontFamily: 'inherit', transition: 'all 0.2s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#f0fdf4'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'white'; }}
+                    >
+                      + Add Another Crop
                     </button>
-                    <button onClick={() => handleAddProduct('Unverified')} disabled={savingProduct} style={{ padding: '11px', borderRadius: '10px', background: 'linear-gradient(135deg,#16a34a,#15803d)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem', fontFamily: 'inherit' }}>
-                      {savingProduct ? <Loader2 size={14} className="animate-spin" /> : 'Publish'}
+                    <button onClick={() => { setShowAddForm(false); resetForm(); setIsSuccess(false); setActiveTab('products'); }}
+                      style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg,#16a34a,#15803d)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', fontFamily: 'inherit', boxShadow: '0 4px 12px rgba(22,163,74,0.2)' }}
+                    >
+                      View My Products
                     </button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div style={{ padding: '28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px' }}>
+                  {/* Left: Image */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <p style={{ fontSize: '0.72rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Crop Photo</p>
+                    {preview ? (
+                      <div style={{ position: 'relative', borderRadius: '18px', overflow: 'hidden', border: '3px solid #bbf7d0', aspectRatio: '1', background: '#f8fafc' }}>
+                        <img src={preview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {isDetecting && (
+                          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', color: 'white' }}>
+                            <Loader2 size={40} className="animate-spin" />
+                            <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>AI Detecting...</span>
+                          </div>
+                        )}
+                        <button onClick={() => { setPreview(null); setDetectionResults(null); }} style={{ position: 'absolute', top: '10px', right: '10px', padding: '6px 12px', borderRadius: '8px', background: '#ef4444', color: 'white', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: '800', fontFamily: 'inherit' }}>
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '32px', border: '2px dashed #e2e8f0', borderRadius: '18px', background: '#f8fafc', cursor: 'pointer', transition: 'all 0.2s', aspectRatio: '1' }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = '#16a34a'; e.currentTarget.style.background = '#f0fdf4'; }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#f8fafc'; }}>
+                        <Camera size={40} color="#94a3b8" strokeWidth={1.5} />
+                        <div style={{ textAlign: 'center' }}>
+                          <p style={{ fontWeight: '700', color: '#334155', marginBottom: '4px' }}>Upload Crop Photo</p>
+                          <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>AI will auto-fill details</p>
+                        </div>
+                        <input type="file" accept="image/*" onChange={handleImageSelect} style={{ display: 'none' }} />
+                      </label>
+                    )}
+                    {detectionResults && (
+                      <div style={{ padding: '12px 16px', background: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                          <p style={{ fontSize: '0.68rem', fontWeight: '800', color: '#16a34a', textTransform: 'uppercase', marginBottom: '2px' }}>AI Result</p>
+                          <p style={{ fontSize: '0.8rem', fontWeight: '700', color: '#334155' }}>{detectionResults.name} · {detectionResults.health}</p>
+                        </div>
+                        <span style={{ padding: '3px 10px', background: '#16a34a', color: 'white', borderRadius: '999px', fontSize: '0.68rem', fontWeight: '800' }}>AI ✓</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right: Form */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <p style={{ fontSize: '0.72rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Crop Details</p>
+                    {[{ label: 'Crop Name *', field: 'name', placeholder: 'e.g. Organic Tomato', type: 'text' },
+                      { label: 'Price per kg (₹) *', field: 'price', placeholder: 'e.g. 55', type: 'number' },
+                      { label: 'Quantity (kg) *', field: 'quantity', placeholder: 'e.g. 500', type: 'number' },
+                      { label: 'Quality Grade', field: 'quality', placeholder: 'e.g. A+, A, B', type: 'text' },
+                    ].map(({ label, field, placeholder, type }) => (
+                      <div key={field}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#64748b', marginBottom: '6px' }}>{label}</label>
+                        <input type={type} placeholder={placeholder} value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })}
+                          style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e2e8f0', outline: 'none', fontSize: '0.9rem', fontWeight: '600', width: '100%', fontFamily: 'inherit' }} />
+                      </div>
+                    ))}
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: 'auto', paddingTop: '8px' }}>
+                      <button onClick={() => { setShowAddForm(false); resetForm(); }} style={{ padding: '11px', borderRadius: '10px', border: '1.5px solid #e2e8f0', background: 'white', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem', color: '#64748b', fontFamily: 'inherit' }}>Cancel</button>
+                      <button onClick={() => handleAddProduct('Hold')} disabled={savingProduct} style={{ padding: '11px', borderRadius: '10px', border: '1.5px solid #f59e0b', background: '#fffbeb', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem', color: '#92400e', fontFamily: 'inherit' }}>
+                        {savingProduct ? '...' : 'Hold'}
+                      </button>
+                      <button onClick={() => handleAddProduct('Unverified')} disabled={savingProduct} style={{ padding: '11px', borderRadius: '10px', background: 'linear-gradient(135deg,#16a34a,#15803d)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem', fontFamily: 'inherit' }}>
+                        {savingProduct ? <Loader2 size={14} className="animate-spin" /> : 'Publish'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </div>
         )}
