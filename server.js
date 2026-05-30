@@ -11,9 +11,15 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Fix for querySrv ECONNREFUSED issues in some Node.js DNS environments
-dns.setDefaultResultOrder('ipv4first');
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+// Fix for querySrv ECONNREFUSED issues in some Node.js DNS environments (run ONLY locally)
+if (process.env.NODE_ENV !== 'production') {
+  dns.setDefaultResultOrder('ipv4first');
+  try {
+    dns.setServers(['8.8.8.8', '8.8.4.4']);
+  } catch (e) {
+    console.warn('⚠️ Could not override DNS servers locally:', e.message);
+  }
+}
 
 // Load environment variables
 dotenv.config();
