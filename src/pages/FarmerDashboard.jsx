@@ -138,6 +138,9 @@ const FarmerDashboard = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: imageData })
       });
+      if (!response.ok) {
+        throw new Error('API key error or crop detection failed');
+      }
       const result = await response.json();
       const { name, quality, health, suggested_price } = result;
       const data = { name: name || 'Detected Crop', health: health || 'Good', quality: quality || 'A+', suggested_price };
@@ -686,10 +689,10 @@ const FarmerDashboard = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: 'auto', paddingTop: '8px' }}>
                       <button onClick={() => { setShowAddForm(false); resetForm(); }} style={{ padding: '11px', borderRadius: '10px', border: '1.5px solid #e2e8f0', background: 'white', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem', color: '#64748b', fontFamily: 'inherit' }}>Cancel</button>
                       <button onClick={() => handleAddProduct('Hold')} disabled={savingProduct} style={{ padding: '11px', borderRadius: '10px', border: '1.5px solid #f59e0b', background: '#fffbeb', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem', color: '#92400e', fontFamily: 'inherit' }}>
-                        {savingProduct ? '...' : 'Hold'}
+                        {savingProduct ? '...' : '⏸ Hold'}
                       </button>
-                      <button onClick={() => handleAddProduct('Unverified')} disabled={savingProduct} style={{ padding: '11px', borderRadius: '10px', background: 'linear-gradient(135deg,#16a34a,#15803d)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem', fontFamily: 'inherit' }}>
-                        {savingProduct ? <Loader2 size={14} className="animate-spin" /> : 'Publish'}
+                      <button onClick={() => handleAddProduct('Approved')} disabled={savingProduct} style={{ padding: '11px', borderRadius: '10px', background: 'linear-gradient(135deg,#16a34a,#15803d)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem', fontFamily: 'inherit', boxShadow: '0 4px 12px rgba(22,163,74,0.3)' }}>
+                        {savingProduct ? <Loader2 size={14} className="animate-spin" /> : '🚀 Publish & Sell'}
                       </button>
                     </div>
                   </div>

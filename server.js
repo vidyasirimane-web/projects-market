@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 import fs from 'fs/promises';
 import mongoose from 'mongoose';
@@ -65,6 +66,7 @@ const ensureDbConnected = async (req, res, next) => {
 app.use('/api', ensureDbConnected);
 
 const API_KEY = process.env.GEMINI_API_KEY || '';
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 // ==========================================
 // MONGOOSE SCHEMAS & MODELS
@@ -273,33 +275,53 @@ app.post('/api/detect-crop', async (req, res) => {
   try {
     const base64Data = image.split(',')[1];
     const mimeType = image.split(';')[0].split(':')[1];
-    console.log("[AI] Analyzing crop image via Gemini...");
+    console.log("[AI] Analyzing crop image via Gemini 2.5 SDK...");
 
-    const payload = {
-      contents: [{
-        parts: [
-          { text: "Identify the agricultural product in the uploaded image. Return a JSON object with exactly these fields: \"name\": string (product name), \"quality\": string (e.g., A+, A, B), \"health\": string (e.g., N/A, Good), \"suggested_price\": number (INR per kg). Return ONLY the JSON object, no extra text." },
-          { inline_data: { mime_type: mimeType, data: base64Data } }
-        ]
-      }]
-    };
-
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            name: {
+              type: "STRING",
+              description: "The common name of the agricultural crop (e.g. Tomato, Potato, Onion, Mango, Apple, Carrot, Banana)."
+            },
+            quality: {
+              type: "STRING",
+              description: "The quality grade based on visual appearance. Must be one of: A+, A, B, C."
+            },
+            health: {
+              type: "STRING",
+              description: "The health status of the crop. Must be one of: Good, Fair, Poor, Diseased."
+            },
+            suggested_price: {
+              type: "NUMBER",
+              description: "A realistic suggested retail price in Indian Rupees (INR) per kg based on typical Indian market rates."
+            }
+          },
+          required: ["name", "quality", "health", "suggested_price"]
+        }
+      }
     });
 
-    const data = await response.json();
-    if (data.error) return res.status(data.error.code || 500).json({ error: 'AI Error', details: data.error.message });
+    const imagePart = {
+      inlineData: {
+        data: base64Data,
+        mimeType: mimeType
+      }
+    };
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      res.json(JSON.parse(jsonMatch[0]));
-    } else {
-      throw new Error("Invalid AI response format");
-    }
+    const result = await model.generateContent([
+      "Identify the agricultural crop in this image. Evaluate its quality grade, health condition, and suggested price in INR per kg.",
+      imagePart
+    ]);
+
+    const text = result.response.text();
+    console.log("[AI] Response Text:", text);
+    const cropData = JSON.parse(text);
+    res.json(cropData);
   } catch (error) {
     console.error("[AI] Error:", error.message);
     res.status(500).json({ error: 'Detection failed', details: error.message });

@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ShoppingBag, Truck, IndianRupee, Search, Star, Package, Clock,
   X, CheckCircle, RefreshCw, Loader2, Building2, LogOut,
-  BarChart2
+  BarChart2, Wifi
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -39,6 +39,10 @@ const CompanyDashboard = () => {
   const [placing, setPlacing] = useState(false);
   const [trackedOrder, setTrackedOrder] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [newCropAlert, setNewCropAlert] = useState(null);
+  const prevProductCountRef = useRef(0);
+  const pollIntervalRef = useRef(null);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -46,11 +50,11 @@ const CompanyDashboard = () => {
     setUserData(user);
   }, [navigate]);
 
-  const loadData = useCallback(async () => {
-    setRefreshing(true);
+  const loadData = useCallback(async (silent = false) => {
+    if (!silent) setRefreshing(true);
     try {
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-      if (currentUser) {
+      if (currentUser && !silent) {
         const uRes = await fetch(`${API}/users/login`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone: currentUser.phone, type: currentUser.type })
@@ -68,8 +72,19 @@ const CompanyDashboard = () => {
       ]);
       const allProducts = await pRes.json();
       const allOrders = await oRes.json();
-      setProducts(Array.isArray(allProducts) ? allProducts : []);
+      const productList = Array.isArray(allProducts) ? allProducts : [];
+      
+      // Detect new crops uploaded by farmers on other devices
+      if (prevProductCountRef.current > 0 && productList.length > prevProductCountRef.current) {
+        const newest = productList[0];
+        setNewCropAlert(`🌾 New crop detected: ${newest.name} by ${newest.farmerName || 'a farmer'}!`);
+        setTimeout(() => setNewCropAlert(null), 5000);
+      }
+      prevProductCountRef.current = productList.length;
+      
+      setProducts(productList);
       setOrders(Array.isArray(allOrders) ? allOrders : []);
+      setLastUpdated(new Date());
     } catch (err) {
       console.error('Load error:', err);
     } finally { setLoading(false); setRefreshing(false); }
@@ -79,16 +94,23 @@ const CompanyDashboard = () => {
     const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
     if (user && user.type === 'company') {
       loadData();
+      // Auto-refresh every 15 seconds — works across ALL devices/laptops
+      pollIntervalRef.current = setInterval(() => loadData(true), 15000);
     }
+    return () => { if (pollIntervalRef.current) clearInterval(pollIntervalRef.current); };
   }, [loadData]);
 
   const handleLogout = () => { localStorage.removeItem('currentUser'); navigate('/login?type=company'); };
 
-  const filteredProducts = products.filter(p => p.status === 'Approved').filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.farmerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.village || '').toLowerCase().includes(searchQuery.toLowerCase())
-  ).filter(p => !['organic tomato','premium potato'].includes(p.name.toLowerCase()));
+  // Show all crops that are not Rejected or on Hold — farmers publish as 'Approved' now
+  const filteredProducts = products
+    .filter(p => p.status !== 'Rejected' && p.status !== 'Hold')
+    .filter(p =>
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.farmerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.village || '').toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter(p => !['organic tomato','premium potato'].includes(p.name.toLowerCase()));
 
   const confirmOrder = async () => {
     if (!paymentMethod) { alert('Please select a payment method'); return; }
@@ -148,6 +170,17 @@ const totalSpend = orders.reduce((s, o) => s + (o.totalPrice || 0), 0);
         )}
       </AnimatePresence>
 
+      {/* New Crop Alert Toast */}
+      <AnimatePresence>
+        {newCropAlert && (
+          <motion.div initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 60 }}
+            style={{ position: 'fixed', bottom: '32px', right: '24px', zIndex: 999, padding: '16px 24px', background: 'linear-gradient(135deg,#16a34a,#15803d)', borderRadius: '16px', boxShadow: '0 16px 48px rgba(22,163,74,0.35)', display: 'flex', alignItems: 'center', gap: '12px', maxWidth: '360px' }}>
+            <span style={{ fontSize: '1.4rem' }}>🌾</span>
+            <p style={{ fontWeight: '700', color: 'white', fontSize: '0.875rem' }}>{newCropAlert}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div style={{ background: 'white', borderBottom: '1px solid #e2e8f0' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '20px 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
@@ -176,6 +209,12 @@ const totalSpend = orders.reduce((s, o) => s + (o.totalPrice || 0), 0);
             <div style={{ padding: '10px 20px', background: '#eff6ff', borderRadius: '14px', border: '1px solid #bfdbfe', textAlign: 'right' }}>
               <p style={{ fontSize: '0.65rem', fontWeight: '800', color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '2px' }}>Total Spend</p>
               <p style={{ fontSize: '1.2rem', fontWeight: '900', color: '#1d4ed8' }}>₹{totalSpend.toLocaleString()}</p>
+            </div>
+            {/* LIVE indicator */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: '10px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16a34a', display: 'inline-block', animation: 'livePulse 1.5s ease-in-out infinite' }} />
+              <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Live</span>
+              {lastUpdated && <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>· {lastUpdated.toLocaleTimeString()}</span>}
             </div>
             <button onClick={() => loadData()} disabled={refreshing} style={{ padding: '10px 16px', borderRadius: '10px', border: '1.5px solid #e2e8f0', background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', fontSize: '0.8rem', color: '#64748b', fontFamily: 'inherit' }}>
               <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} /> Refresh
@@ -276,15 +315,20 @@ const totalSpend = orders.reduce((s, o) => s + (o.totalPrice || 0), 0);
                           <span style={{ color: '#64748b', fontWeight: '600' }}>Stock</span>
                           <span style={{ color: '#0f172a', fontWeight: '800' }}>{p.stock || 'N/A'} {p.unit}</span>
                         </div>
-                        {p.status === 'Approved' ? (
-                          <div style={{ padding: '8px', background: '#d1fae5', borderRadius: '8px', textAlign: 'center', color: '#10b981', fontWeight: '600' }}>Approved</div>
-                        ) : p.status === 'Rejected' ? (
-                          <div style={{ padding: '8px', background: '#fef2f2', borderRadius: '8px', textAlign: 'center', color: '#ef4444', fontWeight: '600' }}>Rejected</div>
-                        ) : (
-                          <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                            <button onClick={() => { setSelectedProduct(p); setShowCheckout(true); }} style={{ flex: 1, padding: '8px', borderRadius: '8px', background: '#2563eb', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '600' }}>Buy Now</button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', background: '#dcfce7', borderRadius: '8px', flex: 1, justifyContent: 'center' }}>
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block', animation: 'livePulse 1.5s ease-in-out infinite' }} />
+                            <span style={{ fontSize: '0.68rem', fontWeight: '800', color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Available</span>
                           </div>
-                        )}
+                          <button
+                            onClick={() => { setSelectedProduct(p); setShowCheckout(true); }}
+                            style={{ flex: 2, padding: '9px 12px', borderRadius: '10px', background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '800', fontSize: '0.8rem', fontFamily: 'inherit', boxShadow: '0 4px 12px rgba(37,99,235,0.3)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                          >
+                            🛒 Buy Now
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   ))}
@@ -461,6 +505,10 @@ const totalSpend = orders.reduce((s, o) => s + (o.totalPrice || 0), 0);
         )}
       </AnimatePresence>
       <style>{`
+        @keyframes livePulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(1.4); }
+        }
         @media (max-width: 900px) {
           .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
