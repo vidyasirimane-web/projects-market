@@ -1,17 +1,27 @@
-import fetch from 'node-fetch';
+import fs from 'fs/promises';
+import path from 'path';
 
-const base64Data = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+async function testClient() {
+  try {
+    const imagePath = path.resolve('public/fresh_apple.png');
+    const imageBuffer = await fs.readFile(imagePath);
+    const base64Data = 'data:image/png;base64,' + imageBuffer.toString('base64');
 
-fetch('http://localhost:5000/api/detect-crop', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ image: base64Data })
-})
-.then(r => {
-  console.log('Status:', r.status);
-  return r.json();
-})
-.then(d => {
-  console.log('Response:', JSON.stringify(d, null, 2));
-})
-.catch(e => console.error('Error:', e.message));
+    console.log("Sending POST request to http://localhost:5000/api/detect-crop...");
+
+    const response = await fetch('http://localhost:5000/api/detect-crop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64Data })
+    });
+
+    console.log('Status:', response.status);
+    const data = await response.json();
+    console.log('Response:', JSON.stringify(data, null, 2));
+
+  } catch (e) {
+    console.error('Error:', e.message);
+  }
+}
+
+testClient();
