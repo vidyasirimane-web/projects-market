@@ -28,7 +28,18 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 const DATA_FILE = './data.json';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/krishi_connect';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+// Log env var status at startup (without leaking values)
+console.log('🔑 GEMINI_API_KEY set:', !!process.env.GEMINI_API_KEY);
+console.log('🗄️  MONGODB_URI set:', !!process.env.MONGODB_URI);
+
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI is not set! Please add it to your Vercel Environment Variables.');
+}
+if (!process.env.GEMINI_API_KEY) {
+  console.error('❌ GEMINI_API_KEY is not set! Please add it to your Vercel Environment Variables.');
+}
 
 // Global variable to cache the MongoDB connection promise for serverless environments
 let dbConnectionPromise = null;
