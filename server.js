@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 
 import fs from 'fs/promises';
 import mongoose from 'mongoose';
@@ -29,16 +29,19 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const DATA_FILE = './data.json';
 
-// Safe fallbacks (used only when env vars are not set on deployment platform)
+// Safe MongoDB fallback for deployment
 const _FB_MONGO = Buffer.from('bW9uZ29kYitzcnY6Ly92aWR5YXNpcmltYW5lX2RiX3VzZXI6MTIzNDU2Nzg5MEBjbHVzdGVyMC5oZHp2b3ltLm1vbmdhZGIubmV0L215RGF0YWJhc2U/cmV0cnlXcml0ZXM9dHJ1ZSZ3PW1ham9yaXR5', 'base64').toString();
-const _FB_GEMINI = Buffer.from('QVEuQWI4Uk42SUtWbW1ZUHFBTWdwY3lfSDZuV0E3OVM4S3FLNG92TTUwM0ZiX1dEZjlMUlE=', 'base64').toString();
 
 const MONGODB_URI = process.env.MONGODB_URI || _FB_MONGO;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || _FB_GEMINI;
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 
-// Log env var status at startup (without leaking values)
-console.log('🔑 GEMINI_API_KEY from env:', !!process.env.GEMINI_API_KEY, '| using fallback:', !process.env.GEMINI_API_KEY);
+// Log env var status at startup
+console.log('🔑 GROQ_API_KEY set:', !!process.env.GROQ_API_KEY, '| length:', GROQ_API_KEY.length);
 console.log('🗄️  MONGODB_URI from env:', !!process.env.MONGODB_URI, '| using fallback:', !process.env.MONGODB_URI);
+
+if (!GROQ_API_KEY) {
+  console.error('❌ GROQ_API_KEY is NOT set! Add it to Vercel Environment Variables.');
+}
 
 // Global variable to cache the MongoDB connection promise for serverless environments
 let dbConnectionPromise = null;
@@ -75,9 +78,8 @@ const ensureDbConnected = async (req, res, next) => {
 // Mount the database check middleware for all API endpoints
 app.use('/api', ensureDbConnected);
 
-const API_KEY = GEMINI_API_KEY;
-console.log('🤖 Gemini API_KEY length:', API_KEY ? API_KEY.length : 0);
-const genAI = new GoogleGenerativeAI(API_KEY);
+const groq = new Groq({ apiKey: GROQ_API_KEY });
+console.log('🤖 Groq API_KEY length:', GROQ_API_KEY ? GROQ_API_KEY.length : 0);
 
 // ==========================================
 // MONGOOSE SCHEMAS & MODELS
@@ -279,9 +281,9 @@ app.get('/health', async (req, res) => res.json({ status: 'ok', message: 'Krishi
 // Diagnostic endpoint — shows env var status without leaking values
 app.get('/api/env-check', (req, res) => {
   res.json({
-    GEMINI_API_KEY_set: !!process.env.GEMINI_API_KEY,
-    GEMINI_API_KEY_length: (GEMINI_API_KEY || '').length,
-    GEMINI_using_fallback: !process.env.GEMINI_API_KEY,
+    GROQ_API_KEY_set: !!process.env.GROQ_API_KEY,
+    GROQ_API_KEY_length: (GROQ_API_KEY || '').length,
+    GROQ_using_fallback: !process.env.GROQ_API_KEY,
     MONGODB_URI_set: !!process.env.MONGODB_URI,
     MONGODB_using_fallback: !process.env.MONGODB_URI,
     NODE_ENV: process.env.NODE_ENV || 'not set',
@@ -290,64 +292,50 @@ app.get('/api/env-check', (req, res) => {
 });
 
 // ==========================================
-// AI CROP DETECTION API
+// AI CROP DETECTION API (Groq LLaMA Vision)
 // ==========================================
 app.post('/api/detect-crop', async (req, res) => {
   const { image } = req.body;
   if (!image) return res.status(400).json({ error: 'No image data provided' });
 
   try {
-    const base64Data = image.split(',')[1];
-    const mimeType = image.split(';')[0].split(':')[1];
-    console.log("[AI] Analyzing crop image via Gemini 2.5 SDK...");
+    console.log('[AI] Analyzing crop image via Groq LLaMA Vision...');
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            name: {
-              type: "STRING",
-              description: "The common name of the agricultural crop (e.g. Tomato, Potato, Onion, Mango, Apple, Carrot, Banana)."
+    const response = await groq.chat.completions.create({
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: image }
             },
-            quality: {
-              type: "STRING",
-              description: "The quality grade based on visual appearance. Must be one of: A+, A, B, C."
-            },
-            health: {
-              type: "STRING",
-              description: "The health status of the crop. Must be one of: Good, Fair, Poor, Diseased."
-            },
-            suggested_price: {
-              type: "NUMBER",
-              description: "A realistic suggested retail price in Indian Rupees (INR) per kg based on typical Indian market rates."
+            {
+              type: 'text',
+              text: `You are an agricultural expert. Analyze this crop image and return ONLY a valid JSON object with exactly these fields:
+{
+  "name": "common crop name (e.g. Tomato, Potato, Onion, Mango, Wheat, Rice, Carrot, Banana)",
+  "quality": "one of: A+, A, B, C",
+  "health": "one of: Good, Fair, Poor, Diseased",
+  "suggested_price": <number in Indian Rupees per kg>
+}
+Return ONLY the JSON, no extra text.`
             }
-          },
-          required: ["name", "quality", "health", "suggested_price"]
+          ]
         }
-      }
+      ],
+      response_format: { type: 'json_object' },
+      max_tokens: 200,
+      temperature: 0.1
     });
 
-    const imagePart = {
-      inlineData: {
-        data: base64Data,
-        mimeType: mimeType
-      }
-    };
-
-    const result = await model.generateContent([
-      "Identify the agricultural crop in this image. Evaluate its quality grade, health condition, and suggested price in INR per kg.",
-      imagePart
-    ]);
-
-    const text = result.response.text();
-    console.log("[AI] Response Text:", text);
+    const text = response.choices[0].message.content;
+    console.log('[AI] Groq Response:', text);
     const cropData = JSON.parse(text);
     res.json(cropData);
   } catch (error) {
-    console.error("[AI] Error:", error.message);
+    console.error('[AI] Groq Error:', error.message);
     res.status(500).json({ error: 'Detection failed', details: error.message });
   }
 });
